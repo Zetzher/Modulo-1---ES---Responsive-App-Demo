@@ -450,6 +450,125 @@ class User {
 
 ```
 
+## scripts/Validator.js
+
+```js
+
+'use strict'; //Usamos use strict
+
+
+class Validator {
+  constructor() {
+    // Creamos los mensajes que queremos que aparezcan de forma predeterminada
+    this.invalidEmailError = 'Intorduce un email válido';
+    this.emailExistsError = 'Este email ya está registrado';
+    this.passwordError = 'Introduce una contraseña de 6 o más carácteres';
+    this.repeatPasswordError = 'Los campos no coinciden';
+
+    // Creamos un objeto con los errores que vamos a mostrar al usuario
+    this.errors = {
+      invalidEmailError: this.invalidEmailError,
+      passwordError: this.passwordError,
+      repeatPasswordError: this.repeatPasswordError
+    }
+  }
+
+    // Validamos el nombre del email
+    validateValidEmail = (email) => {
+      // Y creamos una regla, si el email es valido, quita el mensaje de error
+      if (this.emailIsValid(email)) {
+        delete this.errors.invalidEmailError;
+      }
+      else {
+        // Pero si el email no es valido, aparecerá un mensaje de error
+        this.errors.invalidEmailError = this.invalidEmailError;
+      }
+    }
+
+    // Creamos una función auxiliar de `validateEmail`
+    emailIsValid = (email) => {
+      // Usamos RegEx objeto special - para que valide que sea un email
+      const emailRegEx = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/;
+      
+      // Esto devuelve un true o un false, por lo que si es correcto el email podrá ser registrado
+      const isValid = emailRegEx.test(email);
+      
+      return isValid;      
+    }
+    
+    // Validamos que el email no esta tomado (es unico)
+    validateUniqueEmail = (newEmail) => {
+
+        //Obtenemos todos los usuarios
+      const usersDB = db.getAllUsers();
+
+        //Y como el email es único, creamos una variable para que esté en true
+      let emailUnique = true;
+
+//Comprobamos que el email es único, si lo es pasa la validaciónm, si no, cambiamos emailUnique a false
+      if(usersDB.length > 0) {
+        usersDB.forEach( (userObj) => {
+          // si el email ya esta tomado, cambia el valior de la variable a `false`
+          if (userObj.email === newEmail ) {
+            emailUnique = false;
+          }
+        })
+
+            //Si el email es unico, osea, que es true
+        if (emailUnique) {
+          // Quitamos el mensaje de error
+          delete this.errors.emailExistsError;
+        } else {
+          // Pero si el email no es unico, aparecerá el mensaje de nuevo
+          this.errors.emailExistsError = this.emailExistsError
+        }
+
+      }
+    }
+
+    // Validamos la longitud del password
+    validatePassword = (password) => {
+      if (password.length > 5) {
+        // Si pasa esta regla, quitamos el mensaje de error
+        delete this.errors.passwordError;
+      }
+      else {
+        // En cambio, si el password tiene menos de 5 caracteres, agregamos el mensaje
+        this.errors.passwordError = this.passwordError;
+      }
+    }
+
+    // Validamos si el password y el repeat-password coinciden
+    validatePasswordRepeat = (password, passwordRepeat) => {
+      if (password === passwordRepeat) {
+        // Si los 2 passwords coinciden, quita el error
+        delete this.errors.repeatPasswordError;
+      }
+      else {
+        // En cambio, si no coinciden, agregamos el mensaje
+        this.errors.repeatPasswordError = this.repeatPasswordError;
+      }
+    }
+
+    // Obtenemos el objeto con errors, para mostrarlos al usuario en la pagina Signup
+    getErrors = () => {
+      return this.errors;
+    }
+
+    // Y por último reiniciamos los errores mostrados, para el proximo Signup
+    resetValidator = () => {
+      this.errors = {
+        invalidEmailError: this.invalidEmailError,
+        passwordError: this.passwordError,
+        repeatPasswordError: this.repeatPasswordError
+      }
+    }
+}
+
+const validator = new Validator();
+
+```
+
 
 ## Signup.js
 
@@ -725,121 +844,3 @@ login.loginButton.addEventListener("click", login.submit);
 ```
 
 
-## scripts/Validator.js
-
-```js
-
-'use strict'; //Usamos use strict
-
-
-class Validator {
-  constructor() {
-    // Creamos los mensajes que queremos que aparezcan de forma predeterminada
-    this.invalidEmailError = 'Intorduce un email válido';
-    this.emailExistsError = 'Este email ya está registrado';
-    this.passwordError = 'Introduce una contraseña de 6 o más carácteres';
-    this.repeatPasswordError = 'Los campos no coinciden';
-
-    // Creamos un objeto con los errores que vamos a mostrar al usuario
-    this.errors = {
-      invalidEmailError: this.invalidEmailError,
-      passwordError: this.passwordError,
-      repeatPasswordError: this.repeatPasswordError
-    }
-  }
-
-    // Validamos el nombre del email
-    validateValidEmail = (email) => {
-      // Y creamos una regla, si el email es valido, quita el mensaje de error
-      if (this.emailIsValid(email)) {
-        delete this.errors.invalidEmailError;
-      }
-      else {
-        // Pero si el email no es valido, aparecerá un mensaje de error
-        this.errors.invalidEmailError = this.invalidEmailError;
-      }
-    }
-
-    // Creamos una función auxiliar de `validateEmail`
-    emailIsValid = (email) => {
-      // Usamos RegEx objeto special - para que valide que sea un email
-      const emailRegEx = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/;
-      
-      // Esto devuelve un true o un false, por lo que si es correcto el email podrá ser registrado
-      const isValid = emailRegEx.test(email);
-      
-      return isValid;      
-    }
-    
-    // Validamos que el email no esta tomado (es unico)
-    validateUniqueEmail = (newEmail) => {
-
-        //Obtenemos todos los usuarios
-      const usersDB = db.getAllUsers();
-
-        //Y como el email es único, creamos una variable para que esté en true
-      let emailUnique = true;
-
-//Comprobamos que el email es único, si lo es pasa la validaciónm, si no, cambiamos emailUnique a false
-      if(usersDB.length > 0) {
-        usersDB.forEach( (userObj) => {
-          // si el email ya esta tomado, cambia el valior de la variable a `false`
-          if (userObj.email === newEmail ) {
-            emailUnique = false;
-          }
-        })
-
-            //Si el email es unico, osea, que es true
-        if (emailUnique) {
-          // Quitamos el mensaje de error
-          delete this.errors.emailExistsError;
-        } else {
-          // Pero si el email no es unico, aparecerá el mensaje de nuevo
-          this.errors.emailExistsError = this.emailExistsError
-        }
-
-      }
-    }
-
-    // Validamos la longitud del password
-    validatePassword = (password) => {
-      if (password.length > 5) {
-        // Si pasa esta regla, quitamos el mensaje de error
-        delete this.errors.passwordError;
-      }
-      else {
-        // En cambio, si el password tiene menos de 5 caracteres, agregamos el mensaje
-        this.errors.passwordError = this.passwordError;
-      }
-    }
-
-    // Validamos si el password y el repeat-password coinciden
-    validatePasswordRepeat = (password, passwordRepeat) => {
-      if (password === passwordRepeat) {
-        // Si los 2 passwords coinciden, quita el error
-        delete this.errors.repeatPasswordError;
-      }
-      else {
-        // En cambio, si no coinciden, agregamos el mensaje
-        this.errors.repeatPasswordError = this.repeatPasswordError;
-      }
-    }
-
-    // Obtenemos el objeto con errors, para mostrarlos al usuario en la pagina Signup
-    getErrors = () => {
-      return this.errors;
-    }
-
-    // Y por último reiniciamos los errores mostrados, para el proximo Signup
-    resetValidator = () => {
-      this.errors = {
-        invalidEmailError: this.invalidEmailError,
-        passwordError: this.passwordError,
-        repeatPasswordError: this.repeatPasswordError
-      }
-    }
-}
-
-const validator = new Validator();
-
-```
